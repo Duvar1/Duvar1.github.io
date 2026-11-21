@@ -80,6 +80,18 @@ dialog.xd::backdrop{background:#04101899}.xd details{border-top:1px solid var(--
 <main>
 
 <section>
+  <h2 data-l="tr">Neden önemli?</h2><h2 data-l="en">Why it matters</h2>
+  <div class="two">
+    <div class="no"><h3 data-l="tr">Sorun</h3><h3 data-l="en">The problem</h3>
+      <p data-l="tr">Birden fazla yapay zekâ ajanını birlikte çalıştıran ekipler, ortak bir işin nerede tıkandığını, tekrarların neye mal olduğunu ve bir düzeltmenin gerçekten işe yarayıp yaramadığını kolayca göremiyor. Kayıtlar dağınık, ölçüm çoğu zaman sistemi kuranın kendi kurallarına bağlı.</p>
+      <p data-l="en">Teams running several AI agents together struggle to see where a shared task stalls, what retries cost, and whether a fix actually helped. Records are scattered, and measurement usually depends on the builder's own rules.</p></div>
+    <div class="yes"><h3 data-l="tr">Yaklaşımımız</h3><h3 data-l="en">Our approach</h3>
+      <p data-l="tr">Değiştirilemez bir kayıt, sistemden bağımsız bir ölçüm motoru ve kanıta bağlanmamış hiçbir cümleyi yayınlamayan bir rapor. Ticari değer bir hipotezdir; müşteri ortamında henüz sınanmadı.</p>
+      <p data-l="en">A tamper-evident record, a measurement engine independent of the system it measures, and a report that publishes no sentence without linked evidence. Commercial value is a hypothesis, not yet tested in a customer setting.</p></div>
+  </div>
+</section>
+
+<section>
   <h2 data-l="tr">Nasıl çalışıyor?</h2><h2 data-l="en">How it works</h2>
   <div class="flow">
     <div class="node"><b>B</b> · <span data-l="tr">Laboratuvar</span><span data-l="en">Laboratory</span><p data-l="tr">Ajanlar konuşur, araştırır, itiraz eder, iş birliği yapar.</p><p data-l="en">Agents talk, investigate, object and collaborate.</p></div>
@@ -96,6 +108,8 @@ dialog.xd::backdrop{background:#04101899}.xd details{border-top:1px solid var(--
   <h2 data-l="tr">Prototip koşusu</h2><h2 data-l="en">The prototype run</h2>
   <p data-l="tr">Uzun bir senaryolu koşu. Olaylar önceden yazıldı; amaç, ölçüm motorunun bilinen olayları doğru, izlenebilir ve dürüst biçimde okuyup okumadığını sınamaktı.</p>
   <p data-l="en">One long scripted run. Events were written in advance; the goal was to test whether the measurement engine reads known events correctly, traceably and honestly.</p>
+  <p class="xnote" data-l="tr"><b>Bu bir kalibrasyon koşusu.</b> Yeni bir ölçüm aleti sahaya çıkmadan önce sonucu bilinen örneklerle sınanır. Olayları bilerek önceden yazdık; böylece motorun neyi bulması gerektiğini biliyorduk ve bulduğunu kaynağıyla birlikte karşılaştırabildik. Canlı modellerle koşular bundan sonraki adımdır.</p>
+  <p class="xnote" data-l="en"><b>This is a calibration run.</b> A new measuring instrument is tested on cases with known answers before it goes into the field. We wrote the events in advance on purpose, so we knew what the engine should find and could check what it found against its source. Runs with live models are the next step.</p>
   <div class="grid" style="margin-top:1rem">
     <div class="stat"><b>6</b><span data-l="tr">ajan, ayrı bağlam ve bellek</span><span data-l="en">agents, separate context and memory</span></div>
     <div class="stat"><b>2.100</b><span data-l="tr">zaman adımı</span><span data-l="en">time steps</span></div>
