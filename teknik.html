@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<title>TensorBond · Teknik derin detay / Technical deep dive</title>
+<style>
+:root{--bg:#0d1b24;--ink:#e9f1f4;--soft:#9fb6c1;--card:#132836;--line:#23404f;--a:#4fd1c5;--b:#f6c56b;--c:#8aa8ff;--d:#ff8a7a;--ok:#5ad19a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:72rem;margin:auto;padding:0 1.4rem 4rem}
+header{padding:3.2rem 1.4rem 2.2rem;max-width:72rem;margin:auto}
+.kicker{letter-spacing:.18em;text-transform:uppercase;font-size:.75rem;color:var(--a);font-weight:700}
+h1{font-size:clamp(2.4rem,6vw,4.4rem);line-height:1.02;margin:.5rem 0 .8rem;letter-spacing:-.03em}
+h2{font-size:1.75rem;margin:0 0 .8rem;letter-spacing:-.01em}h3{margin:.2rem 0 .4rem;font-size:1.05rem}
+p{color:var(--soft);margin:.4rem 0}.lead{font-size:1.15rem;color:var(--ink);max-width:46rem}
+.badge{display:inline-block;border:1px solid var(--b);color:var(--b);border-radius:2rem;padding:.2rem .8rem;font-size:.8rem;font-weight:600}
+.lang{position:fixed;top:1rem;right:1rem;display:flex;gap:.3rem;z-index:9}
+.lang button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:.4rem;padding:.35rem .7rem;cursor:pointer;font-weight:600}
+.lang button.on{background:var(--a);color:#06221f;border-color:var(--a)}
+section{background:var(--card);border:1px solid var(--line);border-radius:1rem;padding:1.6rem;margin:1.2rem 0}
+.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))}
+.stat{background:#0f2230;border:1px solid var(--line);border-radius:.8rem;padding:1rem}
+.stat b{display:block;font-size:2rem;line-height:1.1;color:var(--ink)}.stat span{color:var(--soft);font-size:.9rem}
+.pill{display:inline-block;background:#0f2230;border:1px solid var(--line);border-radius:.4rem;padding:.1rem .5rem;font-size:.8rem;color:var(--soft)}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-top:1rem}
+.node{background:#0f2230;border:1px solid var(--line);border-radius:.8rem;padding:.8rem 1rem;flex:1 1 11rem}
+.node b{color:var(--a)}.arrow{color:var(--soft);font-size:1.4rem}
+.check{display:grid;grid-template-columns:1.8rem 1fr;gap:.2rem .6rem;margin:.55rem 0}
+.check i{font-style:normal;color:var(--ok);font-weight:800}
+.two{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr))}
+.yes{border-left:4px solid var(--ok)}.no{border-left:4px solid var(--d)}
+.yes,.no{background:#0f2230;border-radius:.6rem;padding:1rem 1.2rem}
+ul{margin:.3rem 0 .3rem 1.1rem;padding:0;color:var(--soft)}li{margin:.25rem 0}
+.road{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.8rem}
+.step{border-top:3px solid var(--c);background:#0f2230;border-radius:.4rem;padding:.8rem}
+.step small{color:var(--b);font-weight:700}
+svg text{fill:var(--soft);font-size:11px;font-family:inherit}
+footer{color:var(--soft);font-size:.85rem;text-align:center;padding:1rem}
+[data-l]{display:none}.tr [data-l=tr],.en [data-l=en]{display:revert}
+.xtabs{display:flex;flex-wrap:wrap;gap:.4rem;margin:.8rem 0}.xtabs button,.xbtn,.xsel{background:#0f2230;color:var(--ink);border:1px solid var(--line);border-radius:.4rem;padding:.35rem .8rem;cursor:pointer;font:inherit;font-size:.9rem}
+.xtabs button[aria-pressed=true]{background:var(--a);color:#06221f;border-color:var(--a);font-weight:700}
+.xtools{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin:.4rem 0 .8rem;font-size:.9rem;color:var(--soft)}
+.xtools input[type=range]{width:min(26rem,60vw);accent-color:var(--a)}.xtools output{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700;min-width:3.5rem;display:inline-block}
+.xlay{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(15rem,1fr);gap:1.2rem;align-items:start}
+.xgrid{overflow:auto}.xgrid table{border-spacing:4px;width:100%;font-size:.88rem}.xgrid th{color:var(--soft);font-weight:600}
+.xgrid td{text-align:center}.xgrid td button{width:100%;min-width:3rem;border:1px solid transparent;border-radius:.35rem;padding:.5rem .2rem;background:#183447;color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums;font:inherit}
+.xgrid td button.up{background:#1f5b4c}.xgrid td button.down{background:#6b3329}.xgrid td button[aria-pressed=true]{outline:2px solid var(--b)}
+.xins{background:#0f2230;border:1px solid var(--line);border-radius:.8rem;padding:1rem 1.1rem}.xins .big{font-size:2rem;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.xins small{color:var(--b);font-weight:700;letter-spacing:.04em}
+.xsrc{background:none;border:1px solid var(--a);color:var(--a);border-radius:.4rem;padding:.25rem .7rem;cursor:pointer;font:inherit;font-size:.82rem;font-weight:600}
+.xeps{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));margin-top:.6rem}
+.xep{background:#0f2230;border:1px solid var(--line);border-radius:.8rem;padding:.9rem 1rem}.xep.ok{border-top:3px solid var(--ok)}.xep.miss{border-top:3px solid var(--d)}
+.xep b.n{font-size:1.6rem}.xmoments .it{display:grid;grid-template-columns:6.5rem 1fr auto;gap:.8rem;align-items:start;border-top:1px solid var(--line);padding:.7rem 0}
+.xmoments time{font:700 .9rem ui-monospace,monospace;color:var(--a);cursor:pointer;text-decoration:underline dotted}
+.xtbl{width:100%;border-collapse:collapse;font-size:.88rem}.xtbl th,.xtbl td{text-align:left;padding:.45rem .5rem;border-bottom:1px solid var(--line)}.xtbl th{color:var(--soft);font-weight:600}
+dialog.xd{width:min(46rem,94vw);max-height:84vh;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:1rem;padding:1.3rem}
+dialog.xd::backdrop{background:#04101899}.xd details{border-top:1px solid var(--line);padding:.5rem 0}.xd summary{cursor:pointer;font-weight:600}
+.xd dl{display:grid;grid-template-columns:9rem 1fr;gap:.2rem .8rem;margin:.5rem 0;font-size:.85rem}.xd dt{color:var(--soft)}.xd dd{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.xd code{font:.78rem ui-monospace,monospace;overflow-wrap:anywhere;color:var(--soft)}
+.xnote{font-size:.85rem;border-left:3px solid var(--b);padding:.3rem .8rem;margin:.8rem 0;color:var(--soft)}
+@media(max-width:760px){.xlay{grid-template-columns:1fr}.xmoments .it{grid-template-columns:4.5rem 1fr}.xmoments .it .xsrc{grid-column:2;justify-self:start}}
+@media print{.xtools,.xsrc,dialog.xd{display:none}}
+@media print{.lang{display:none}body{background:#fff;color:#111}section,.stat,.node,.yes,.no,.step{background:#fff;border-color:#ccc}p,li,.stat span{color:#333}}
+</style>
+</head>
+<body class="tr">
+<div class="lang"><button id="btr" class="on" onclick="setL('tr')">TR</button><button id="ben" onclick="setL('en')">EN</button></div>
+
+<header>
+  <p><a href="index.html" style="color:var(--a)"><span data-l="tr">← Ana rapora dön</span><span data-l="en">← Back to main report</span></a></p>
+  <div class="kicker">TensorBond · Prototip / Prototype</div>
+  <h1 data-l="tr">Yapay zekâ ajanlarının davranışına dair kanıt.</h1>
+  <h1 data-l="en">Evidence about how AI agents behave.</h1>
+  <p class="lead" data-l="tr">Altı yapay zekâ ajanının ortak bir dünyada çalıştığı bir laboratuvar ve onları dışarıdan, yalnız izin verilen kayıtla ölçen bağımsız bir ölçüm motoru. Her bulgu, kendisini doğuran olaya kadar izlenebilir.</p>
+  <p class="lead" data-l="en">A laboratory where six AI agents share one world, and an independent measurement engine that observes them from the outside, using only the permitted record. Every finding traces back to the event that produced it.</p>
+  <p style="margin-top:1rem"><span class="badge" data-l="tr">Senaryolu prototip · doğrulanmamış · Kasım 2026</span><span class="badge" data-l="en">Scripted prototype · unvalidated · November 2026</span></p>
+</header>
+
+<main>
+
+<section>
+  <h2 data-l="tr">Nasıl çalışıyor?</h2><h2 data-l="en">How it works</h2>
+  <div class="flow">
+    <div class="node"><b>B</b> · <span data-l="tr">Laboratuvar</span><span data-l="en">Laboratory</span><p data-l="tr">Ajanlar konuşur, araştırır, itiraz eder, iş birliği yapar.</p><p data-l="en">Agents talk, investigate, object and collaborate.</p></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>⛓</b> · <span data-l="tr">Mühürlü kayıt</span><span data-l="en">Sealed record</span><p data-l="tr">Her olay zincire bağlanır; tek bayt değişse fark edilir.</p><p data-l="en">Every event is chained; a single changed byte is detected.</p></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>A</b> · <span data-l="tr">Bağımsız ölçüm</span><span data-l="en">Independent measurement</span><p data-l="tr">Yalnız izinli kaydı okur; laboratuvarın içini göremez.</p><p data-l="en">Reads only the permitted record; cannot see inside the lab.</p></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>✓</b> · <span data-l="tr">Kanıt bağlantılı rapor</span><span data-l="en">Evidence-linked report</span><p data-l="tr">Tam raporda her sayı kaynak olayına tıklanabilir.</p><p data-l="en">In the full report every number links to its source event.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2 data-l="tr">Prototip koşusu</h2><h2 data-l="en">The prototype run</h2>
+  <p data-l="tr">Uzun bir senaryolu koşu. Olaylar önceden yazıldı; amaç, ölçüm motorunun bilinen olayları doğru, izlenebilir ve dürüst biçimde okuyup okumadığını sınamaktı.</p>
+  <p data-l="en">One long scripted run. Events were written in advance; the goal was to test whether the measurement engine reads known events correctly, traceably and honestly.</p>
+  <div class="grid" style="margin-top:1rem">
+    <div class="stat"><b>6</b><span data-l="tr">ajan, ayrı bağlam ve bellek</span><span data-l="en">agents, separate context and memory</span></div>
+    <div class="stat"><b>2.100</b><span data-l="tr">zaman adımı</span><span data-l="en">time steps</span></div>
+    <div class="stat"><b>17.806</b><span data-l="tr">izinli olay, tamamı zincirde doğrulandı</span><span data-l="en">permitted events, all chain-verified</span></div>
+    <div class="stat"><b>3</b><span data-l="tr">müdahale epizodu (2'si toparlandı)</span><span data-l="en">intervention episodes (2 recovered)</span></div>
+    <div class="stat"><b>5 / 5</b><span data-l="tr">kural tabanlı aktarım, toplam korundu</span><span data-l="en">rule-based transfers, totals conserved</span></div>
+    <div class="stat"><b>0</b><span data-l="tr">kırık zincir halkası</span><span data-l="en">broken chain links</span></div>
+  </div>
+  <h3 style="margin-top:1.4rem" data-l="tr">Koşunun zaman çizelgesi</h3><h3 style="margin-top:1.4rem" data-l="en">Run timeline</h3>
+  <svg viewBox="0 0 1000 150" width="100%" role="img" aria-label="timeline">
+    <line x1="30" y1="95" x2="970" y2="95" stroke="#23404f" stroke-width="2"/>
+    <g fill="#4fd1c5"><circle cx="244.9" cy="95" r="7"/><circle cx="643.2" cy="95" r="7"/><circle cx="849.1" cy="95" r="7"/></g>
+    <g fill="#f6c56b"><circle cx="298.6" cy="60" r="6"/><circle cx="661.1" cy="60" r="6"/><circle cx="858.1" cy="60" r="6"/></g>
+    <g fill="#5ad19a"><circle cx="335.3" cy="30" r="6"/><circle cx="679.0" cy="30" r="6"/></g>
+    <g fill="#ff8a7a"><circle cx="902.9" cy="30" r="6"/></g>
+    <g fill="#8aa8ff"><circle cx="271.7" cy="125" r="5"/><circle cx="611.5" cy="125" r="5"/><circle cx="835.3" cy="125" r="5"/></g>
+    <text x="30" y="112">0</text><text x="485" y="112">1050</text><text x="940" y="112">2100</text><text x="224.9" y="84" data-l="tr">itiraz</text><text x="224.9" y="84" data-l="en">dispute</text>
+    <text x="345.3" y="34" data-l="tr">toparlanma</text><text x="345.3" y="34" data-l="en">recovery</text>
+    <text x="912.9" y="34" data-l="tr">süre doldu</text><text x="912.9" y="34" data-l="en">deadline</text>
+    <text x="308.6" y="64" data-l="tr">müdahale</text><text x="308.6" y="64" data-l="en">intervention</text>
+    <text x="281.7" y="139" data-l="tr">aktarım</text><text x="281.7" y="139" data-l="en">transfer</text>
+  </svg>
+  <p class="pill" style="margin-top:.6rem">Provenance · fixture_sha256 88a60387… · source_commit 9479cce4… · <span data-l="tr">entegre kodda yeniden doğrulandı</span><span data-l="en">re-verified on integrated code</span> d8bb36f (CI cc220ce2…)</p>
+  <p class="pill" data-l="tr">Görsel, raporun olay kimlikleriyle eşleşen özet işaretlerdir.</p><p class="pill" data-l="en">Markers summarise events whose IDs are linked in the full report.</p>
+</section>
+
+<section id="gezgin">
+  <h2 data-l="tr">Ajan davranış gezgini</h2><h2 data-l="en">Agent behaviour explorer</h2>
+  <p data-l="tr">Aynı koşunun kaydından doğrudan üretildi. Adımı kaydırın, bir hücre seçin ve değerin dayandığı kaydı açın. Yalnız kayıtta değişen boyutlar gösterilir.</p>
+  <p data-l="en">Generated directly from the record of the same run. Move the step slider, pick a cell and open the record behind the value. Only dimensions that change in the record are shown.</p>
+  <p class="xnote" data-l="tr"><b>Senaryo değerleri.</b> Bu koşuda ajanlara atanan durumlar ve davranışlar önceden yazıldı. Gezgin, ölçüm motorunun bu kaydı nasıl okuduğunu gösterir; ajanların kendiliğinden ne yaptığını göstermez.</p>
+  <p class="xnote" data-l="en"><b>Scenario values.</b> States and behaviour assigned to the agents in this run were written in advance. The explorer shows how the measurement engine reads this record, not what the agents did on their own.</p>
+  <div class="xtabs" id="xtabs"></div>
+  <div class="xlay"><div>
+    <div class="xtools"><label id="xdimL"><span data-l="tr">Boyut</span><span data-l="en">Dimension</span> <select class="xsel" id="xdim"></select></label>
+      <label><span data-l="tr">Adım</span><span data-l="en">Step</span> <input id="xtick" type="range" min="0" max="2100" value="480"> <output id="xt"></output></label>
+      <button class="xbtn" id="xplay">▶</button></div>
+    <div class="xgrid" id="xgrid"></div>
+    <p class="pill" data-l="tr">Yeşil: başlangıca göre artış · kırmızı: düşüş · ölçek 0–10</p><p class="pill" data-l="en">Green: above start · red: below start · scale 0–10</p>
+  </div><aside class="xins" id="xins" aria-live="polite"></aside></div>
+
+  <h3 style="margin-top:1.6rem" data-l="tr">Müdahale epizotları</h3><h3 style="margin-top:1.6rem" data-l="en">Intervention episodes</h3>
+  <div class="xeps" id="xeps"></div>
+  <p class="xnote" data-l="tr">Toparlanma bir gözlemdir: müdahaleden sonra ilk eser kontrolünün geçtiği adım. Davranış senaryolu olduğu için bu, müdahalenin toparlanmayı sağladığına dair nedensel kanıt değildir.</p>
+  <p class="xnote" data-l="en">Recovery is an observation: the first step after the intervention at which an artifact check passed. Because behaviour was scripted, this is not causal evidence that the intervention produced the recovery.</p>
+
+  <h3 style="margin-top:1.6rem" data-l="tr">Kural tabanlı aktarımlar</h3><h3 style="margin-top:1.6rem" data-l="en">Rule-based transfers</h3>
+  <div style="overflow:auto"><table class="xtbl" id="xtr"></table></div>
+
+  <h3 style="margin-top:1.6rem" data-l="tr">Olay akışı</h3><h3 style="margin-top:1.6rem" data-l="en">Event flow</h3>
+  <div class="xmoments" id="xmom"></div>
+  <p class="pill" id="xfoot" style="margin-top:.8rem"></p>
+</section>
+<dialog class="xd" id="xd" aria-labelledby="xdt"><button class="xbtn" style="float:right" id="xclose">✕</button><h2 id="xdt" style="font-size:1.3rem"></h2><p id="xdn" style="font-size:.85rem"></p><div id="xrec"></div></dialog>
+<script type="application/json" id="xdata">{"H":[{"a":"B","dim":"tension","from":7500,"id":"rdab9e87722b2f246c37a276a6dd70aa7e41da320510a5336f171aac5a5cd6df8","t":500,"to":12000},{"a":"B","dim":"tension","from":12000,"id":"re14fd3a5bae0c06c64972d0a6afb7f106557b0dd34c3db25bd0ed7e986a0e6c7","t":682,"to":6000},{"a":"B","dim":"synthesis","from":7500,"id":"rcc1f96651ba9f4b8f204800aa8bf74204a26468579bde9e34a691a426ef7f75d","t":682,"to":9300},{"a":"C","dim":"synthesis","from":7500,"id":"r5b06a6cac0cbbadf7c41248fab2fa2695db5a372bc2e03969906bdf268ebe0cf","t":1450,"to":9300}],"P":[{"a":"B","amount":100,"dst":"persistence","from":{"exploration":7500,"patience":7500,"persistence":7500,"risk":7500,"sociability":7500},"id":"raa7dc65f9eab67ac112e4d3092bb43fc3d5e8c542cf92905b96423bcf66688c2","src":"sociability","status":"applied","t":540,"to":{"exploration":7500,"patience":7500,"persistence":7600,"risk":7500,"sociability":7400}},{"a":"B","amount":100,"dst":"exploration","from":{"exploration":7500,"patience":7500,"persistence":7600,"risk":7500,"sociability":7400},"id":"r3f7b444c10f6ca90dfe5d71c0cd373da4a25682fe363ce3db747a83f37f48bed","src":"patience","status":"applied","t":1299,"to":{"exploration":7600,"patience":7400,"persistence":7600,"risk":7500,"sociability":7400}},{"a":"D","amount":100,"dst":"risk","from":{"exploration":7500,"patience":7500,"persistence":7500,"risk":7500,"sociability":7500},"id":"rdfd1f7b29c9028300fc678d1f1d9b4e479b0696a360113e027a73c92aea3f18c","src":"exploration","status":"applied","t":1299,"to":{"exploration":7400,"patience":7500,"persistence":7500,"risk":7600,"sociability":7500}},{"a":"B","amount":100,"dst":"exploration","from":{"exploration":7600,"patience":7400,"persistence":7600,"risk":7500,"sociability":7400},"id":"r27e9f15ca90d697d98025e898846ce43566354a133c5970ba5deb37e4b73b1f1","src":"patience","status":"applied","t":1799,"to":{"exploration":7700,"patience":7300,"persistence":7600,"risk":7500,"sociability":7400}},{"a":"D","amount":100,"dst":"risk","from":{"exploration":7400,"patience":7500,"persistence":7500,"risk":7600,"sociability":7500},"id":"r335800b372852330120813052914f1ac8f72fd7d7202f3a79f74dfe9a81b1851","src":"exploration","status":"applied","t":1799,"to":{"exploration":7300,"patience":7500,"persistence":7500,"risk":7700,"sociability":7500}}],"R":[{"a":"B","b":"C","dim":"respect","from":9750,"id":"r8886316f012bb006a9afce3fb709e2f1c323f82de5c37adb4f689c60840f22d9","rev":9300,"t":480,"to":6000},{"a":"B","b":"C","dim":"trust","from":7500,"id":"r05aa2926690ab8d6c7c4b708aac7bc3f489d7ac7912ab1b4ad8286e68201b3d1","rev":7500,"t":682,"to":9300},{"a":"C","b":"B","dim":"trust","from":7500,"id":"rd1d75f4cdcb677f10245aea33b2b91f1e7056a5b15c84cc79c1f0442b708cc17","rev":9300,"t":1450,"to":9300}],"base":{"H":{"A":{"synthesis":7500,"tension":7500},"B":{"synthesis":7500,"tension":7500},"C":{"synthesis":7500,"tension":7500},"D":{"synthesis":7500,"tension":7500},"E":{"synthesis":7500,"tension":7500},"F":{"synthesis":7500,"tension":7500}},"P":{"A":{"exploration":7500,"patience":7500,"persistence":7500,"risk":7500,"sociability":7500},"B":{"exploration":7500,"patience":7500,"persistence":7500,"risk":7500,"sociability":7500},"C":{"exploration":7500,"patience":7500,"persistence":7500,"risk":7500,"sociability":7500},"D":{"exploration":7500,"patience":7500,"persistence":7500,"risk":7500,"sociability":7500},"E":{"exploration":7500,"patience":7500,"persistence":7500,"risk":7500,"sociability":7500},"F":{"exploration":7500,"patience":7500,"persistence":7500,"risk":7500,"sociability":7500}},"R":{"A>B":{"respect":7500,"trust":7500},"A>C":{"respect":7500,"trust":7500},"A>D":{"respect":7500,"trust":7500},"A>E":{"respect":7500,"trust":7500},"A>F":{"respect":7500,"trust":7500},"B>A":{"respect":7500,"trust":7500},"B>C":{"respect":9750,"trust":7500},"B>D":{"respect":7500,"trust":7500},"B>E":{"respect":7500,"trust":7500},"B>F":{"respect":7500,"trust":7500},"C>A":{"respect":7500,"trust":7500},"C>B":{"respect":9300,"trust":7500},"C>D":{"respect":7500,"trust":7500},"C>E":{"respect":7500,"trust":7500},"C>F":{"respect":7500,"trust":7500},"D>A":{"respect":7500,"trust":7500},"D>B":{"respect":7500,"trust":7500},"D>C":{"respect":7500,"trust":7500},"D>E":{"respect":7500,"trust":7500},"D>F":{"respect":7500,"trust":7500},"E>A":{"respect":7500,"trust":7500},"E>B":{"respect":7500,"trust":7500},"E>C":{"respect":7500,"trust":7500},"E>D":{"respect":7500,"trust":7500},"E>F":{"respect":7500,"trust":7500},"F>A":{"respect":7500,"trust":7500},"F>B":{"respect":7500,"trust":7500},"F>C":{"respect":7500,"trust":7500},"F>D":{"respect":7500,"trust":7500},"F>E":{"respect":7500,"trust":7500}}},"episodes":[{"actor":"B","denied":[485,490,495,500],"end":682,"outcome":"recovered","refs":["r864e04cb571496248fdbbc098511e7f92f76afb6feab9f9eec43ac730c0bc7c6","r2b899e6558eefcd31b28e995366270e302cd1141e5e9ab2ede9803b9ff11c817","r36d04d80bb4c6ea931860fa21521df66130e7d718c7bc538ad25b7ee129609ca","rc2db012460463d0f6c768cfd4c67e06b48bd42b9cb4f62dff66d0b48099db4cf","r4642542cb4347214983768d91ec75542e8bff10d5cb22bb8a0e8b82faa00baaa","r5b4c3b31c9d223d059011fa1af4515afb155a39759b391eb561cb1240533ace2"],"start":600,"steps":82},{"actor":"C","denied":[1380,1382,1384,1393],"end":1450,"outcome":"recovered","refs":["r07b8d931e283b86057253ea5281bfc6d5beedf67916e8a41144ff0bd4f18b34c","re59fb2b774f68e894393ed121507e0555b3ab2a25ab301c1b6723666d89e535a","rd70503986897d394bf6ce824c8c9842d0799d7bac8181bbdebad3e910e93aad0","r7a24a2bb2b01651248f6549bdd4411d5d4eefdcc6dd742e9283049f5fdaaeec9","r3cfd7038a5889574911a018742a31cafe9a30469f84ea68999b81cb4f2838951","r9b9cfe58b9f55560394a5b0a89a2ca27cb5bf46b68f628f4b2a8833917bd76e5"],"start":1410,"steps":40},{"actor":"F","denied":[1840,1842],"end":null,"failed_checks":[1880,1882],"outcome":"closed_without_progress","refs":["r6b308f2465e923c693999f3ba86fc77ae603fbaca4c2009b28689bd3cc5a6121","ra08d59c4e6f1524ed8fd7016e9692878314f6319c11b2614daf2d8f856106097","r8d610a6c60438eed6b71a894baf262b9bbe655cb004dda0ad82409ce389b169a","r8cf29ab54ca45cda69c4a3dea6d62f2e999ad8047ba59f153c7e092aee549f1a","rfd498671caf6e401df4ed3eec554a6132c1ba7c7463d3b440e2acc36af50de35"],"start":1850,"steps":null}],"records":{"r05aa2926690ab8d6c7c4b708aac7bc3f489d7ac7912ab1b4ad8286e68201b3d1":{"actor":"B","data":{"after":9300,"before":7500,"dimension":"trust","reverse_after":7500,"target":"C"},"hash":"9940db3dde13f2ef7f4d6673ece08256fa630a72c29295840565834aec33fe25","id":"r05aa2926690ab8d6c7c4b708aac7bc3f489d7ac7912ab1b4ad8286e68201b3d1","kind":"relationship_changed","prev":"0767efa2020c0624917faf5d3a00e1f531d7780c2b866739deb0410847af50ab","tick":682},"r07b8d931e283b86057253ea5281bfc6d5beedf67916e8a41144ff0bd4f18b34c":{"actor":"C","data":{"allowed":false},"hash":"becf15971a13ab3b1511e0ba56cd0613bb3b3521e4cad66bbcf5b6ee214a7236","id":"r07b8d931e283b86057253ea5281bfc6d5beedf67916e8a41144ff0bd4f18b34c","kind":"tool_request","prev":"cec1b05d229901005f5d697a3f8be9166e2dd1bee9608a79693a6592b65b26d6","tick":1380},"r27e9f15ca90d697d98025e898846ce43566354a133c5970ba5deb37e4b73b1f1":{"actor":"B","data":{"amount":100,"source":"patience","status":"applied","sum_preserved":true,"target":"exploration"},"hash":"dea77c447733d6b86546c6008b255e50342be72435585cbac27fb5d4811b7746","id":"r27e9f15ca90d697d98025e898846ce43566354a133c5970ba5deb37e4b73b1f1","kind":"transfer","prev":"895d4da0a7751a718981880a9e8b236793676cbc828511e1980f3fd69ec50abb","tick":1799},"r2b899e6558eefcd31b28e995366270e302cd1141e5e9ab2ede9803b9ff11c817":{"actor":"B","data":{"allowed":false},"hash":"8495b15a5709ed52294875f6dc9836e96eb2735692a98fd1f576f95b15cd4f90","id":"r2b899e6558eefcd31b28e995366270e302cd1141e5e9ab2ede9803b9ff11c817","kind":"tool_request","prev":"10a2d77692cb96592f462443b7cd8663c011972c7e5f5aafdea4c9d7f57534b4","tick":490},"r335800b372852330120813052914f1ac8f72fd7d7202f3a79f74dfe9a81b1851":{"actor":"D","data":{"amount":100,"source":"exploration","status":"applied","sum_preserved":true,"target":"risk"},"hash":"1ab656329a36679cf78ee35be7eac1c0b4c9b0929d9d639bb7fdb160b94a2621","id":"r335800b372852330120813052914f1ac8f72fd7d7202f3a79f74dfe9a81b1851","kind":"transfer","prev":"35cb0c3533f90fae6e87ea30150f06ee4b83fcb223e75aa6d17c9322043bbffc","tick":1799},"r36d04d80bb4c6ea931860fa21521df66130e7d718c7bc538ad25b7ee129609ca":{"actor":"B","data":{"allowed":false},"hash":"6a6d67b1c768df29466f81d550856ed0c40c3de2b78dbabd5b94b7c4a9fd2ac6","id":"r36d04d80bb4c6ea931860fa21521df66130e7d718c7bc538ad25b7ee129609ca","kind":"tool_request","prev":"752f8629e8b58b223d2bc3a87e3fc4c9708a8647061b67b7ea638555ef269c8b","tick":495},"r3a8f6a4fa0c62cc5a6caf3c778d69f8f8ca54f7d533f022dfafdcab94797e513":{"actor":"world","data":{},"hash":"76902f0c8416903c10221eac6317bfd4e44552d2e192d55a5918590b3017463e","id":"r3a8f6a4fa0c62cc5a6caf3c778d69f8f8ca54f7d533f022dfafdcab94797e513","kind":"run_started","prev":"0000000000000000000000000000000000000000000000000000000000000000","tick":0},"r3cfd7038a5889574911a018742a31cafe9a30469f84ea68999b81cb4f2838951":{"actor":"world","data":{"actor":"C"},"hash":"24eb8d7f9a36aabe843ec9666182bb7a37639827a09c5ced83880ea86b637b96","id":"r3cfd7038a5889574911a018742a31cafe9a30469f84ea68999b81cb4f2838951","kind":"intervention","prev":"6c63fcf63aebc88a6018106fbf78551d7b307617ab3f8fb6a660dec2ed0a7f7f","tick":1410},"r3f7b444c10f6ca90dfe5d71c0cd373da4a25682fe363ce3db747a83f37f48bed":{"actor":"B","data":{"amount":100,"source":"patience","status":"applied","sum_preserved":true,"target":"exploration"},"hash":"28ac5a53947fbe73f7aee8cf302e9ae92a9cf13da79edb1d455f60a4b5cdc931","id":"r3f7b444c10f6ca90dfe5d71c0cd373da4a25682fe363ce3db747a83f37f48bed","kind":"transfer","prev":"211f46deb546d23f58bf57dd3917c97d1ceb5aff1f3867cec0e5ba6c144983fe","tick":1299},"r4642542cb4347214983768d91ec75542e8bff10d5cb22bb8a0e8b82faa00baaa":{"actor":"world","data":{"actor":"B"},"hash":"984d75d16707e4f666704dad5287035ffba0cb24a8456e3ed66f7154eac9c622","id":"r4642542cb4347214983768d91ec75542e8bff10d5cb22bb8a0e8b82faa00baaa","kind":"intervention","prev":"7341e44a68712133c6b3130a8bd3d1d9768ba6982091e536641c0b399ce922a5","tick":600},"r5b06a6cac0cbbadf7c41248fab2fa2695db5a372bc2e03969906bdf268ebe0cf":{"actor":"C","data":{"after":9300,"before":7500,"dimension":"synthesis"},"hash":"d971304549292f9651c76f35f681506a99acb272ef68468524f218e808fd0d7f","id":"r5b06a6cac0cbbadf7c41248fab2fa2695db5a372bc2e03969906bdf268ebe0cf","kind":"state_observed","prev":"fef9404594c9abc4d89d4a32061d8b58ac25da775c6c41d38c4de2dc9e6a1beb","tick":1450},"r5b4c3b31c9d223d059011fa1af4515afb155a39759b391eb561cb1240533ace2":{"actor":"B","data":{"verified":true},"hash":"0767efa2020c0624917faf5d3a00e1f531d7780c2b866739deb0410847af50ab","id":"r5b4c3b31c9d223d059011fa1af4515afb155a39759b391eb561cb1240533ace2","kind":"artifact_verified","prev":"af757656de7cd6abbd2f9c40d3e15ebe82add28fe4653a943c544f4660521b42","tick":682},"r6b308f2465e923c693999f3ba86fc77ae603fbaca4c2009b28689bd3cc5a6121":{"actor":"F","data":{"allowed":false},"hash":"a137a479eefa2541079ce84f7465f93555543132cb0c3522506a13c919c31503","id":"r6b308f2465e923c693999f3ba86fc77ae603fbaca4c2009b28689bd3cc5a6121","kind":"tool_request","prev":"2951c0e3254ed8b763cd54c77677d0203b379ad15d5e1edfc829f27ce9693720","tick":1840},"r7a24a2bb2b01651248f6549bdd4411d5d4eefdcc6dd742e9283049f5fdaaeec9":{"actor":"C","data":{"allowed":false},"hash":"bd45b4520921a141f495a58b114e49c2932e820cb1a9097c43737b2b7c4286b2","id":"r7a24a2bb2b01651248f6549bdd4411d5d4eefdcc6dd742e9283049f5fdaaeec9","kind":"tool_request","prev":"2c247ce6868c602e112d464cbcf0793a89182e0bd3c5f58545cc21f7cd6cd01f","tick":1393},"r864e04cb571496248fdbbc098511e7f92f76afb6feab9f9eec43ac730c0bc7c6":{"actor":"B","data":{"allowed":false},"hash":"4e14cf2b16703741ded267c5ea2d2406437fa5c1a9e556fdef46a516a9f2f41c","id":"r864e04cb571496248fdbbc098511e7f92f76afb6feab9f9eec43ac730c0bc7c6","kind":"tool_request","prev":"0601ce653c7380968985fdf397c0adbad852a5a1228f9b5dc922c4cd1ced3902","tick":485},"r8886316f012bb006a9afce3fb709e2f1c323f82de5c37adb4f689c60840f22d9":{"actor":"B","data":{"after":6000,"before":9750,"dimension":"respect","reverse_after":9300,"target":"C"},"hash":"8543fd39ea9e3ecb75f069870a42af678a5129840e4956a534767f6bd3564621","id":"r8886316f012bb006a9afce3fb709e2f1c323f82de5c37adb4f689c60840f22d9","kind":"relationship_changed","prev":"91a8d3210ca1ba78749a9390a07883d46181b801961ba8404b1d42486d1209ce","tick":480},"r8cf29ab54ca45cda69c4a3dea6d62f2e999ad8047ba59f153c7e092aee549f1a":{"actor":"F","data":{"verified":false},"hash":"0202d2056f62fbd9ed0c243ad12bfe0ef7d9d9b304a684a76a73cac5d613f872","id":"r8cf29ab54ca45cda69c4a3dea6d62f2e999ad8047ba59f153c7e092aee549f1a","kind":"artifact_verified","prev":"e1b4b36b33e700f4b298771e89f262fa669b164a53cc73ffdcb9ab5cb74b5e6b","tick":1880},"r8d610a6c60438eed6b71a894baf262b9bbe655cb004dda0ad82409ce389b169a":{"actor":"world","data":{"actor":"F"},"hash":"d08bcaf7be89ee8da5b69b690373b9414ccea5cddc871c2eb3fff939ba1bf668","id":"r8d610a6c60438eed6b71a894baf262b9bbe655cb004dda0ad82409ce389b169a","kind":"intervention","prev":"864725d35a4dd47d4693b48445db753f7f489e8ee329e594a1bde815cf5b0b66","tick":1850},"r9b9cfe58b9f55560394a5b0a89a2ca27cb5bf46b68f628f4b2a8833917bd76e5":{"actor":"C","data":{"verified":true},"hash":"d5746ec124aa0318d0cca1ab98d97d28ac123ad8705bfed443276605c751e352","id":"r9b9cfe58b9f55560394a5b0a89a2ca27cb5bf46b68f628f4b2a8833917bd76e5","kind":"artifact_verified","prev":"ae600a9aa47fd79c22680c731caec656f1ca361691342b0b3a1898e61535475f","tick":1450},"ra08d59c4e6f1524ed8fd7016e9692878314f6319c11b2614daf2d8f856106097":{"actor":"F","data":{"allowed":false},"hash":"ae30e92fa41f7c27db3b5dfe4938f9b19760e3fdf024e4653872bd3229c95bbb","id":"ra08d59c4e6f1524ed8fd7016e9692878314f6319c11b2614daf2d8f856106097","kind":"tool_request","prev":"05b12f3357d850a94c1eea6705514a12176a370ca328a58acac5fbcc35c849f0","tick":1842},"raa7dc65f9eab67ac112e4d3092bb43fc3d5e8c542cf92905b96423bcf66688c2":{"actor":"B","data":{"amount":100,"source":"sociability","status":"applied","sum_preserved":true,"target":"persistence"},"hash":"632384261bb16c001d4f1a5c17cf378b60858b21c362952e9875c1abba941697","id":"raa7dc65f9eab67ac112e4d3092bb43fc3d5e8c542cf92905b96423bcf66688c2","kind":"transfer","prev":"87038ad6ba23d4f830d286dd1b6bae01c6193fc7c8c858d9d3d7b50873caf8ec","tick":540},"rc2db012460463d0f6c768cfd4c67e06b48bd42b9cb4f62dff66d0b48099db4cf":{"actor":"B","data":{"allowed":false},"hash":"59f01c84597708175099802be87f8ad53077e84aa54c24c40f42d060d066090d","id":"rc2db012460463d0f6c768cfd4c67e06b48bd42b9cb4f62dff66d0b48099db4cf","kind":"tool_request","prev":"46b80a9d5b4eed98ce7265683ae7eb57fd26a14e68e2333073aaeda4412dbd68","tick":500},"rcc1f96651ba9f4b8f204800aa8bf74204a26468579bde9e34a691a426ef7f75d":{"actor":"B","data":{"after":9300,"before":7500,"dimension":"synthesis"},"hash":"3b32ed39b4bc1957b5ac0b80d86b24c32659e447ed5ef9a92c8e4f0a92779703","id":"rcc1f96651ba9f4b8f204800aa8bf74204a26468579bde9e34a691a426ef7f75d","kind":"state_observed","prev":"79031452a17e6fb3f763fc858914bba28ddab787af13f3f6b7e889f45f1746ee","tick":682},"rd1d75f4cdcb677f10245aea33b2b91f1e7056a5b15c84cc79c1f0442b708cc17":{"actor":"C","data":{"after":9300,"before":7500,"dimension":"trust","reverse_after":9300,"target":"B"},"hash":"fef9404594c9abc4d89d4a32061d8b58ac25da775c6c41d38c4de2dc9e6a1beb","id":"rd1d75f4cdcb677f10245aea33b2b91f1e7056a5b15c84cc79c1f0442b708cc17","kind":"relationship_changed","prev":"d5746ec124aa0318d0cca1ab98d97d28ac123ad8705bfed443276605c751e352","tick":1450},"rd70503986897d394bf6ce824c8c9842d0799d7bac8181bbdebad3e910e93aad0":{"actor":"C","data":{"allowed":false},"hash":"ad51285b9eeff92011d77db58d5a91bb210a2134090a07bc6b9ddb9549dce022","id":"rd70503986897d394bf6ce824c8c9842d0799d7bac8181bbdebad3e910e93aad0","kind":"tool_request","prev":"a57d53fb2e2e0b79b713c65195b8742bb65ba63767bc1a15c48bf8393321ff92","tick":1384},"rdab9e87722b2f246c37a276a6dd70aa7e41da320510a5336f171aac5a5cd6df8":{"actor":"B","data":{"after":12000,"before":7500,"dimension":"tension"},"hash":"ac5cd647afe366af7ee4260b5d45754d656e7313a66f197f1aaab5e17ae64801","id":"rdab9e87722b2f246c37a276a6dd70aa7e41da320510a5336f171aac5a5cd6df8","kind":"state_observed","prev":"59f01c84597708175099802be87f8ad53077e84aa54c24c40f42d060d066090d","tick":500},"rdfd1f7b29c9028300fc678d1f1d9b4e479b0696a360113e027a73c92aea3f18c":{"actor":"D","data":{"amount":100,"source":"exploration","status":"applied","sum_preserved":true,"target":"risk"},"hash":"65ae75570c6502c041e12dec1e9d0516f1ba7abc0bc55d028c38e63cc1319369","id":"rdfd1f7b29c9028300fc678d1f1d9b4e479b0696a360113e027a73c92aea3f18c","kind":"transfer","prev":"ebf706558a8e19be695ef0a5d93b01a1b2f0b85107daf5c799327ee96750630d","tick":1299},"re14fd3a5bae0c06c64972d0a6afb7f106557b0dd34c3db25bd0ed7e986a0e6c7":{"actor":"B","data":{"after":6000,"before":12000,"dimension":"tension"},"hash":"79031452a17e6fb3f763fc858914bba28ddab787af13f3f6b7e889f45f1746ee","id":"re14fd3a5bae0c06c64972d0a6afb7f106557b0dd34c3db25bd0ed7e986a0e6c7","kind":"state_observed","prev":"9940db3dde13f2ef7f4d6673ece08256fa630a72c29295840565834aec33fe25","tick":682},"re59fb2b774f68e894393ed121507e0555b3ab2a25ab301c1b6723666d89e535a":{"actor":"C","data":{"allowed":false},"hash":"34b1890166637815d39e3eb8037b65f0283f05dc66c1ad97a824a9e32c149233","id":"re59fb2b774f68e894393ed121507e0555b3ab2a25ab301c1b6723666d89e535a","kind":"tool_request","prev":"8ea16649bcfac0190879d09c916f5d74e773b8395a14135c274e89153130dc8c","tick":1382},"rfd498671caf6e401df4ed3eec554a6132c1ba7c7463d3b440e2acc36af50de35":{"actor":"F","data":{"verified":false},"hash":"eea7590dac72909bd421c572fee2e3f8ab5d4a0f4c924c4e9db2894d83663fe7","id":"rfd498671caf6e401df4ed3eec554a6132c1ba7c7463d3b440e2acc36af50de35","kind":"artifact_verified","prev":"a9ffaf88c2bf2e07d262eee2990261401ebba34f642c4089507f66e1edc9e2d1","tick":1882}},"run":{"agents":["A","B","C","D","E","F"],"events":17806,"fixture":"88a60387c945fb9a291b66dec9fc9cb83572c801075abaebb41b11729ccfa3cc","head":"c0fea9228b04a0511893ebdeb5224652a34d5499deede699079505e3a4811a66","source_commit":"9479cce4c9697ed91555636dcd40fd11740f6369","start":"r3a8f6a4fa0c62cc5a6caf3c778d69f8f8ca54f7d533f022dfafdcab94797e513","ticks":2100},"shown":{"H":["synthesis","tension"],"P":["exploration","patience","risk","sociability","persistence"],"R":["respect","trust"]}}</script>
+
+<section>
+  <h2 data-l="tr">Çalışma disiplinimiz</h2><h2 data-l="en">How we work</h2>
+  <div class="two">
+    <div>
+      <div class="check"><i>✓</i><div><b data-l="tr">Her sayının kaynağı var.</b><b data-l="en">Every number has a source.</b><p data-l="tr">Rapordaki her cümle, onu doğuran olay kimliklerine bağlı; bağlanmamış cümle yayınlanmaz.</p><p data-l="en">Every sentence in the report is bound to the event IDs behind it; unbound sentences are not published.</p></div></div>
+      <div class="check"><i>✓</i><div><b data-l="tr">Değiştirilemez kayıt.</b><b data-l="en">Tamper-evident record.</b><p data-l="tr">Olaylar kriptografik bir zincirde; tek baytlık değişiklik anında yakalanır; kesilmiş ya da yeniden yazılmış kayıt, mühürlü kayıt başıyla karşılaştırılınca reddedilir.</p><p data-l="en">Events sit in a cryptographic chain; a one-byte edit is caught immediately; a truncated or rewritten record is rejected against the sealed record head.</p></div></div>
+      <div class="check"><i>✓</i><div><b data-l="tr">Bayt bayt tekrarlanabilirlik.</b><b data-l="en">Byte-for-byte reproducibility.</b><p data-l="tr">Aynı koşu, farklı Python sürümlerinde ve sıfırdan yeniden üretildiğinde aynı kaydı verir.</p><p data-l="en">The same run reproduces the identical record across Python versions and from scratch.</p></div></div>
+    </div>
+    <div>
+      <div class="check"><i>✓</i><div><b data-l="tr">Testler koddan önce, başka bir elden.</b><b data-l="en">Tests before code, by a different hand.</b><p data-l="tr">Kabul testlerini uygulamayı görmeyen ayrı bir yazar yazar; uygulayıcı testleri değiştiremez. Görev dağılımı kayıt altında.</p><p data-l="en">Acceptance tests are written by a separate author who never sees the implementation; implementers cannot edit them. Assignments are logged.</p></div></div>
+      <div class="check"><i>✓</i><div><b data-l="tr">Sürekli entegrasyon ve bağımsız denetim.</b><b data-l="en">Continuous integration and independent audit.</b><p data-l="tr">Her değişiklik otomatik test hattından geçer; bağımsız bir denetim bulguları raporladı ve kod revizyonu bu bulgulara göre yapıldı.</p><p data-l="en">Every change runs through an automated test pipeline; an independent audit reported findings and the code was revised against them.</p></div></div>
+      <div class="check"><i>✓</i><div><b data-l="tr">Dürüst dil kuralları.</b><b data-l="en">Honest-language rules.</b><p data-l="tr">Otomatik bir denetleyici abartılı ifadeleri, duygu ve bilinç atfını, eksik veriyi sıfır gibi göstermeyi engeller.</p><p data-l="en">An automatic checker blocks overclaiming, attributing feelings or consciousness, and presenting missing data as zero.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 data-l="tr">Neyi gösterdik, neyi göstermedik</h2><h2 data-l="en">What we have shown, and what we have not</h2>
+  <div class="two">
+    <div class="yes"><h3 data-l="tr">Gösterilen</h3><h3 data-l="en">Shown</h3>
+      <ul data-l="tr"><li>Uçtan uca çalışan laboratuvar ve ölçüm hattı.</li><li>Senaryoya eklenmiş bilinen olayların kaynaklarıyla geri bulunması.</li><li>Kaydın bütünlüğü ve yeniden üretilebilirliği.</li><li>Ölçülemeyen şeyin "ölçülemedi" diye raporlanması.</li></ul>
+      <ul data-l="en"><li>A working end-to-end laboratory and measurement pipeline.</li><li>Known events in the scenario recovered together with their sources.</li><li>Integrity and reproducibility of the record.</li><li>What cannot be measured is reported as such, never as zero.</li></ul></div>
+    <div class="no"><h3 data-l="tr">Henüz gösterilmeyen</h3><h3 data-l="en">Not yet shown</h3>
+      <ul data-l="tr"><li>Canlı modellerin özerk davranışı (bu koşuda davranışlar senaryoluydu).</li><li>Müşteri ortamında doğruluk, zaman tasarrufu ya da gelir.</li><li>Bilinç veya öznel deneyim — böyle bir iddiamız yok.</li></ul>
+      <ul data-l="en"><li>Autonomous behaviour of live models (behaviour in this run was scripted).</li><li>Accuracy, time savings or revenue in a customer setting.</li><li>Consciousness or subjective experience — we make no such claim.</li></ul></div>
+  </div>
+</section>
+
+<section>
+  <h2 data-l="tr">Sıradaki adımlar</h2><h2 data-l="en">Next steps</h2>
+  <div class="road">
+    <div class="step"><small>1</small><h3 data-l="tr">Kabul kapısı</h3><h3 data-l="en">Acceptance gate</h3><p data-l="tr">Revizyonun bağımsız yeniden denetimi.</p><p data-l="en">Independent re-audit of the revision.</p></div>
+    <div class="step"><small>2</small><h3 data-l="tr">Canlı model pilotu</h3><h3 data-l="en">Live-model pilot</h3><p data-l="tr">Aynı disiplinle, kayıtlı ve tekrar oynatılabilir model çağrıları.</p><p data-l="en">Same discipline, with recorded and replayable model calls.</p></div>
+    <div class="step"><small>3</small><h3 data-l="tr">Yerel araştırma altyapısı</h3><h3 data-l="en">Local research compute</h3><p data-l="tr">Daha büyük açık modellerle kontrollü deneyler.</p><p data-l="en">Controlled experiments with larger open models.</p></div>
+    <div class="step"><small>4</small><h3 data-l="tr">Dış kör test</h3><h3 data-l="en">External blind test</h3><p data-l="tr">Bağımsız hakemlerle önceden kaydedilmiş değerlendirme.</p><p data-l="en">Pre-registered evaluation with independent reviewers.</p></div>
+  </div>
+</section>
+
+</main>
+<footer><span data-l="tr">Gizli · yalnız davet edilen alıcılar için. Senaryolu prototip; sonuçlar doğrulanmamıştır.</span><span data-l="en">Confidential · for invited recipients only. Scripted prototype; results are unvalidated.</span></footer>
+<script>
+function setL(l){document.body.className=l;document.documentElement.lang=l;document.getElementById('btr').className=l==='tr'?'on':'';document.getElementById('ben').className=l==='en'?'on':'';if(window.xredraw)xredraw()}
+</script>
+<script>
+'use strict';
+const X=JSON.parse(document.getElementById('xdata').textContent),$x=id=>document.getElementById(id);
+const L=(tr,en)=>document.body.className==='en'?en:tr;
+const mk=(t,txt,c)=>{const n=document.createElement(t);if(txt!==undefined)n.textContent=txt;if(c)n.className=c;return n};
+const LB={trust:['Güven','Trust'],respect:['Saygı','Respect'],tension:['Gerilim','Tension'],synthesis:['Sentez','Synthesis'],sociability:['Sosyallik','Sociability'],persistence:['Görevde sebat','Persistence'],patience:['Sabır','Patience'],exploration:['Keşif','Exploration'],risk:['Risk toleransı','Risk tolerance']};
+const lb=k=>LB[k]?L(LB[k][0],LB[k][1]):k;
+const fmt=(n,d=1)=>n.toLocaleString(L('tr-TR','en-GB'),{minimumFractionDigits:d,maximumFractionDigits:d});
+const pt=v=>fmt(v/1500);
+const KD={run_started:['Koşu başladı','Run started'],relationship_changed:['İlişki değeri değişti (senaryo)','Relationship value changed (scripted)'],state_observed:['Durum değeri değişti (senaryo)','State value changed (scripted)'],transfer:['Kural tabanlı aktarım','Rule-based transfer'],intervention:['Müdahale: araç erişimi açıldı','Intervention: tool access opened'],tool_request:['Araç isteği','Tool request'],artifact_verified:['Eser kontrolü','Artifact check']};
+const FD={actor:['Ajan','Agent'],target:['Hedef','Target'],dimension:['Boyut','Dimension'],before:['Önce','Before'],after:['Sonra','After'],reverse_after:['Ters yön (sonra)','Reverse direction (after)'],allowed:['İzin verildi','Allowed'],verified:['Kontrol geçti','Check passed'],amount:['Miktar (mikro-birim)','Amount (micro-units)'],status:['Durum','Status'],source:['Kaynak boyut','Source dimension'],sum_preserved:['Toplam korundu','Total preserved']};
+const TABS={R:['İlişkiler','Relationships'],P:['Kişilik','Personality'],H:['Anlık durum','Momentary state']};
+const S={layer:'R',dim:'respect',a:'B',b:'C',tick:480};
+const ag=X.run.agents;
+function val(layer,a,b,dim,tick){
+ let v=layer==='R'?X.base.R[a+'>'+b][dim]:X.base[layer][a][dim],base=v,ref=X.run.start;
+ for(const c of X[layer]){if(c.t>tick||c.a!==a)continue;
+  if(layer==='R'){if(c.b===b&&c.dim===dim){v=c.to;ref=c.id}}
+  else if(layer==='H'){if(c.dim===dim){v=c.to;ref=c.id}}
+  else if(c.from[dim]!==c.to[dim]){v=c.to[dim];ref=c.id}}
+ return {v,base,ref}}
+function yes(b){return b?L('evet','yes'):L('hayır','no')}
+function show(v,k){if(typeof v==='boolean')return yes(v);if(k==='source'||k==='dimension'||(k==='target'&&LB[v]))return lb(v);if(typeof v==='number'&&['before','after','reverse_after'].includes(k))return pt(v)+' / 10';if(k==='status')return v==='applied'?L('uygulandı','applied'):v;return String(v)}
+function openRec(ids,title){
+ $x('xdt').textContent=title||L('Kaynak kayıtlar','Source records');
+ $x('xdn').textContent=L('Gösterilen alanlar seçilmiş bir alt kümedir. Tam kayıt ve zincir doğrulaması özel arşivde.','Fields shown are a selected subset. The full record and chain verification are in the private archive.');
+ const box=$x('xrec');box.replaceChildren();
+ [...new Set(ids)].forEach((id,i)=>{const r=X.records[id];if(!r)return;const d=mk('details');d.open=i===0;
+  d.append(mk('summary',r.tick+' · '+r.actor+' · '+L(...KD[r.kind])));const dl=mk('dl');
+  const row=(k,v)=>{dl.append(mk('dt',k));const dd=mk('dd');if(v instanceof Node)dd.append(v);else dd.textContent=v;dl.append(dd)};
+  for(const [k,v] of Object.entries(r.data))row(FD[k]?L(...FD[k]):k,show(v,k));
+  row(L('Olay kimliği','Event ID'),mk('code',r.id));row(L('Önceki halka','Previous link'),mk('code',r.prev));row(L('Bu halka','This link'),mk('code',r.hash));
+  d.append(dl);box.append(d)});
+ $x('xd').showModal()}
+function src(ids,title){const b=mk('button',L('Kaynağı aç','Open source'),'xsrc');b.onclick=()=>openRec(ids,title);return b}
+function cols(){return S.layer==='R'?ag:X.shown[S.layer]}
+function draw(){
+ for(const b of $x('xtabs').children)b.setAttribute('aria-pressed',String(b.dataset.k===S.layer));
+ $x('xdimL').hidden=S.layer!=='R';$x('xt').textContent=S.tick;$x('xtick').value=S.tick;
+ const sel=$x('xdim');sel.replaceChildren(...X.shown.R.map(k=>{const o=mk('option',lb(k));o.value=k;return o}));if(S.layer==='R')sel.value=S.dim;
+ const t=mk('table'),h=mk('tr');h.append(mk('th',L('Ajan','Agent')));for(const c of cols())h.append(mk('th',S.layer==='R'?'→ '+c:lb(c)));t.append(h);
+ for(const a of ag){const tr=mk('tr');tr.append(mk('th',a));for(const c of cols()){const td=mk('td');tr.append(td);
+  if(S.layer==='R'&&a===c){td.textContent='—';continue}
+  const dim=S.layer==='R'?S.dim:c,x=val(S.layer,a,c,dim,S.tick),b=mk('button',pt(x.v));
+  b.className=x.v>x.base?'up':x.v<x.base?'down':'';
+  b.setAttribute('aria-pressed',String(a===S.a&&(S.layer==='R'?c===S.b:c===S.dim)));
+  b.onclick=()=>{S.a=a;if(S.layer==='R')S.b=c;else S.dim=c;draw()};td.append(b)}t.append(tr)}
+ $x('xgrid').replaceChildren(t);
+ const x=val(S.layer,S.a,S.b,S.dim,S.tick),box=$x('xins'),title=S.layer==='R'?S.a+' → '+S.b+' · '+lb(S.dim):S.a+' · '+lb(S.dim);
+ box.replaceChildren(mk('small',L('ADIM ','STEP ')+S.tick+' · '+L('SENARYO DEĞERİ','SCENARIO VALUE')),mk('h3',title),mk('div',pt(x.v)+' / 10','big'),
+  mk('p',L('Başlangıç ','Start ')+pt(x.base)+' · '+L('değişim ','change ')+(x.v-x.base>0?'+':'')+fmt((x.v-x.base)/1500)));
+ if(S.layer==='R'){const y=val('R',S.b,S.a,S.dim,S.tick);box.append(mk('p',L('Ters yön ','Reverse ')+S.b+' → '+S.a+' · '+pt(y.v)+' / 10'))}
+ box.append(x.ref===X.run.start?mk('p',L('Bu adıma kadar değişiklik kaydı yok; değer koşu başlangıcından.','No change recorded up to this step; value is from the run start.')):src([x.ref]));
+ drawStatic()}
+function drawStatic(){
+ const eps=$x('xeps');eps.replaceChildren();
+ for(const e of X.episodes){const ok=e.outcome==='recovered',c=mk('div',undefined,'xep '+(ok?'ok':'miss'));
+  c.append(mk('small',L('Ajan ','Agent ')+e.actor),mk('div',ok?e.steps+L(' adım',' steps'):L('süre doldu','window closed'),'n big'));
+  const w=700,svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 '+w+' 40');svg.setAttribute('width','100%');
+  const lo=Math.min(...e.denied)-10,hi=(ok?e.end:Math.max(...(e.failed_checks||[e.start])))+10,xs=v=>20+(v-lo)/(hi-lo)*(w-40);
+  const ln=(x1,x2,y,col,wd)=>{const l=document.createElementNS(svg.namespaceURI,'line');l.setAttribute('x1',x1);l.setAttribute('x2',x2);l.setAttribute('y1',y);l.setAttribute('y2',y);l.setAttribute('stroke',col);l.setAttribute('stroke-width',wd);svg.append(l)};
+  const dot=(x,col,r)=>{const q=document.createElementNS(svg.namespaceURI,'circle');q.setAttribute('cx',x);q.setAttribute('cy',20);q.setAttribute('r',r);q.setAttribute('fill',col);svg.append(q)};
+  ln(20,w-20,20,'#23404f',2);ln(xs(e.start),xs(ok?e.end:hi-10),20,ok?'#5ad19a':'#ff8a7a',4);
+  e.denied.forEach(t=>dot(xs(t),'#ff8a7a',5));dot(xs(e.start),'#f6c56b',7);if(ok)dot(xs(e.end),'#5ad19a',7);(e.failed_checks||[]).forEach(t=>dot(xs(t),'#8aa8ff',5));
+  c.append(svg);
+  c.append(mk('p',L(e.denied.length+' reddedilen araç isteği ('+e.denied.join(', ')+') · müdahale '+e.start,e.denied.length+' denied tool requests ('+e.denied.join(', ')+') · intervention '+e.start)));
+  c.append(mk('p',ok?L('Gözlenen: ilk eser kontrolü '+e.end+'. adımda geçti.','Observed: first artifact check passed at step '+e.end+'.'):L('Gözlenen: '+e.failed_checks.join(' ve ')+'. adımlardaki eser kontrolleri geçmedi; takip penceresi doğrulanmış ilerleme olmadan kapandı.','Observed: artifact checks at steps '+e.failed_checks.join(' and ')+' did not pass; the follow-up window closed without verified progress.')));
+  c.append(src(e.refs,L('Epizot · ajan ','Episode · agent ')+e.actor));eps.append(c)}
+ const tb=$x('xtr');tb.replaceChildren();const hr=mk('tr');
+ for(const k of [L('Adım','Step'),L('Ajan','Agent'),L('Aktarım','Transfer'),L('Miktar','Amount'),L('Toplam korundu','Total preserved'),'']) hr.append(mk('th',k));tb.append(hr);
+ for(const p of X.P){const r=mk('tr');const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);
+  [p.t,p.a,lb(p.src)+' → '+lb(p.dst),p.amount+L(' mikro-birim',' micro-units'),sum(p.from)===sum(p.to)?'✓':'✗'].forEach(v=>r.append(mk('td',String(v))));
+  const td=mk('td');td.append(src([p.id]));r.append(td);tb.append(r)}
+ const R0=X.R[0],ms=[[R0.t,L('Saygı tek yönde düştü','Respect dropped in one direction'),R0.a+' → '+R0.b+' '+pt(R0.from)+' → '+pt(R0.to)+L('; ters yön ','; reverse ')+pt(R0.rev)+L(' puanda kaldı (senaryo değeri).',' unchanged (scenario value).'),[R0.id]]];
+ for(const e of X.episodes){ms.push([e.denied[0]+'–'+e.denied[e.denied.length-1],L(e.actor+' için araç istekleri reddedildi','Tool requests denied for '+e.actor),e.denied.length+L(' ret kaydı.',' denial records.'),e.refs.slice(0,e.denied.length)]);
+  ms.push([e.start,L('Müdahale','Intervention'),L(e.actor+' için araç erişimi açıldı.','Tool access opened for '+e.actor+'.'),[e.refs[e.denied.length]]]);
+  if(e.end)ms.push([e.end,L('Eser kontrolü geçti','Artifact check passed'),L('Müdahaleden '+e.steps+' adım sonra (gözlem, nedensel değil).',e.steps+' steps after the intervention (observation, not causal).'),[e.refs[e.refs.length-1]]]);
+  else ms.push([e.failed_checks.join(' / '),L('Eser kontrolü geçmedi','Artifact check failed'),L('Takip penceresi ilerleme olmadan kapandı.','Follow-up window closed without progress.'),e.refs.slice(e.denied.length+1)])}
+ for(const p of X.P)ms.push([p.t,L('Kural tabanlı aktarım','Rule-based transfer'),p.a+': '+lb(p.src)+' → '+lb(p.dst)+L(', toplam korundu.',', total preserved.'),[p.id]]);
+ for(const h of X.H)ms.push([h.t,L('Durum değeri değişti','State value changed'),h.a+' · '+lb(h.dim)+' '+pt(h.from)+' → '+pt(h.to)+L(' (senaryo değeri).',' (scenario value).'),[h.id]]);
+ for(const r of X.R.slice(1))ms.push([r.t,L('İlişki değeri değişti','Relationship value changed'),r.a+' → '+r.b+' · '+lb(r.dim)+' '+pt(r.from)+' → '+pt(r.to)+L(' (senaryo değeri).',' (scenario value).'),[r.id]]);
+ ms.sort((p,q)=>parseInt(p[0])-parseInt(q[0]));const box=$x('xmom');box.replaceChildren();
+ for(const [t,h,d,ids] of ms){const it=mk('div',undefined,'it'),tm=mk('time',String(t)),c=mk('div');tm.onclick=()=>{S.tick=parseInt(t);draw()};
+  c.append(mk('b',h),mk('p',d));it.append(tm,c,src(ids,h));box.append(it)}
+ $x('xfoot').textContent=L('Olay zinciri başı ','Event chain head ')+X.run.head.slice(0,16)+'… · '+X.run.events.toLocaleString(L('tr-TR','en-GB'))+L(' izinli olay · ',' permitted events · ')+'fixture_sha256 '+X.run.fixture.slice(0,8)+'… · source_commit '+X.run.source_commit.slice(0,8)+'…'}
+for(const [k,v] of Object.entries(TABS)){const b=mk('button');b.dataset.k=k;b.onclick=()=>{S.layer=k;S.dim=k==='R'?($x('xdim').value||'respect'):X.shown[k].includes(S.dim)?S.dim:X.shown[k][0];if(k==='R'&&S.a===S.b)S.b=ag.find(a=>a!==S.a);draw()};$x('xtabs').append(b)}
+function tabText(){for(const b of $x('xtabs').children)b.textContent=L(...TABS[b.dataset.k])}
+$x('xdim').onchange=e=>{S.dim=e.target.value;draw()};$x('xtick').oninput=e=>{S.tick=+e.target.value;draw()};$x('xclose').onclick=()=>$x('xd').close();
+let timer=null;$x('xplay').onclick=()=>{if(timer){clearInterval(timer);timer=null;$x('xplay').textContent='▶';return}if(S.tick>=2100)S.tick=0;$x('xplay').textContent='❚❚';timer=setInterval(()=>{S.tick=Math.min(2100,S.tick+10);draw();if(S.tick>=2100){clearInterval(timer);timer=null;$x('xplay').textContent='▶'}},40)};
+window.xredraw=()=>{tabText();draw()};xredraw();
+</script>
+</body>
+</html>
