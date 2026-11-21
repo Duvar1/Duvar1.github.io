@@ -50,6 +50,10 @@ document.querySelector('.langs').addEventListener('change',e=>{
  root.lang=e.target.value;
  document.title=root.lang==='tr'?'TensorBond · Prototip raporu':'TensorBond · Prototype report';
 });
+const syncL=()=>{for(const a of document.querySelectorAll('a[href^="teknik.html"]'))a.href='teknik.html?lang='+root.lang};
+document.querySelector('.langs').addEventListener('change',syncL);
+{const q=new URLSearchParams(location.search).get('lang');if(q==='tr'||q==='en'){const r=document.getElementById('language-'+q);r.checked=true;root.lang=q;document.title=q==='tr'?'TensorBond · Prototip raporu':'TensorBond · Prototype report'}}
+syncL();
 document.querySelector('#print').addEventListener('click',()=>window.print());
 let states;
 addEventListener('beforeprint',()=>{if(states)return;states=[...document.querySelectorAll('details')].map(d=>[d,d.open]);for(const [d] of states)d.open=true;});

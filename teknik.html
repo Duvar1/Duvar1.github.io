@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -64,8 +64,8 @@ dialog.xd::backdrop{background:#04101899}.xd details{border-top:1px solid var(--
 @media print{.lang{display:none}body{background:#fff;color:#111}section,.stat,.node,.yes,.no,.step{background:#fff;border-color:#ccc}p,li,.stat span{color:#333}}
 </style>
 </head>
-<body class="tr">
-<div class="lang"><button id="btr" class="on" onclick="setL('tr')">TR</button><button id="ben" onclick="setL('en')">EN</button></div>
+<body class="en">
+<div class="lang"><button id="ben" class="on" onclick="setL('en')">EN</button><button id="btr" onclick="setL('tr')">TR</button></div>
 
 <header>
   <p><a href="index.html" style="color:var(--a)"><span data-l="tr">← Ana rapora dön</span><span data-l="en">← Back to main report</span></a></p>
@@ -193,7 +193,7 @@ dialog.xd::backdrop{background:#04101899}.xd details{border-top:1px solid var(--
 </main>
 <footer><span data-l="tr">Gizli · yalnız davet edilen alıcılar için. Senaryolu prototip; sonuçlar doğrulanmamıştır.</span><span data-l="en">Confidential · for invited recipients only. Scripted prototype; results are unvalidated.</span></footer>
 <script>
-function setL(l){document.body.className=l;document.documentElement.lang=l;document.getElementById('btr').className=l==='tr'?'on':'';document.getElementById('ben').className=l==='en'?'on':'';if(window.xredraw)xredraw()}
+function setL(l){document.body.className=l;document.documentElement.lang=l;document.getElementById('btr').className=l==='tr'?'on':'';document.getElementById('ben').className=l==='en'?'on':'';if(window.xredraw)xredraw();for(const a of document.querySelectorAll('a[href^="index.html"]'))a.href='index.html?lang='+l}
 </script>
 <script>
 'use strict';
@@ -286,5 +286,6 @@ $x('xdim').onchange=e=>{S.dim=e.target.value;draw()};$x('xtick').oninput=e=>{S.t
 let timer=null;$x('xplay').onclick=()=>{if(timer){clearInterval(timer);timer=null;$x('xplay').textContent='▶';return}if(S.tick>=2100)S.tick=0;$x('xplay').textContent='❚❚';timer=setInterval(()=>{S.tick=Math.min(2100,S.tick+10);draw();if(S.tick>=2100){clearInterval(timer);timer=null;$x('xplay').textContent='▶'}},40)};
 window.xredraw=()=>{tabText();draw()};xredraw();
 </script>
+<script>{const q=new URLSearchParams(location.search).get('lang');setL(q==='tr'?'tr':'en')}</script>
 </body>
 </html>
