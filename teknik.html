@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
 <title>TensorBond · Teknik derin detay / Technical deep dive</title>
@@ -176,7 +176,7 @@ dialog.xd::backdrop{background:#04101899}.xd details{border-top:1px solid var(--
     </div>
     <div>
       <div class="check"><i>✓</i><div><b data-l="tr">Testler koddan önce, başka bir elden.</b><b data-l="en">Tests before code, by a different hand.</b><p data-l="tr">Kabul testlerini uygulamayı görmeyen ayrı bir yazar yazar; uygulayıcı testleri değiştiremez. Görev dağılımı kayıt altında.</p><p data-l="en">Acceptance tests are written by a separate author who never sees the implementation; implementers cannot edit them. Assignments are logged.</p></div></div>
-      <div class="check"><i>✓</i><div><b data-l="tr">Sürekli entegrasyon ve bağımsız denetim.</b><b data-l="en">Continuous integration and independent audit.</b><p data-l="tr">Her değişiklik otomatik test hattından geçer; bağımsız bir denetim bulguları raporladı ve kod revizyonu bu bulgulara göre yapıldı.</p><p data-l="en">Every change runs through an automated test pipeline; an independent audit reported findings and the code was revised against them.</p></div></div>
+      <div class="check"><i>✓</i><div><b data-l="tr">Sürekli entegrasyon ve bağımsız denetim.</b><b data-l="en">Continuous integration and independent audit.</b><p data-l="tr">Her değişiklik otomatik test hattından geçer. Bağımsız denetim, senaryolu çekirdek için geçici geçer sonucu verdi; raporladığı bulgulara göre kod revize edildi ve revizyon yeniden denetimi bekliyor.</p><p data-l="en">Every change runs through an automated test pipeline. The independent audit issued an interim pass for the scripted core; the code was revised against its findings, and the revision awaits re-audit.</p></div></div>
       <div class="check"><i>✓</i><div><b data-l="tr">Dürüst dil kuralları.</b><b data-l="en">Honest-language rules.</b><p data-l="tr">Otomatik bir denetleyici abartılı ifadeleri, duygu ve bilinç atfını, eksik veriyi sıfır gibi göstermeyi engeller.</p><p data-l="en">An automatic checker blocks overclaiming, attributing feelings or consciousness, and presenting missing data as zero.</p></div></div>
     </div>
   </div>
@@ -205,7 +205,7 @@ dialog.xd::backdrop{background:#04101899}.xd details{border-top:1px solid var(--
 </section>
 
 </main>
-<footer><span data-l="tr">Gizli · yalnız davet edilen alıcılar için. Senaryolu prototip; sonuçlar doğrulanmamıştır.</span><span data-l="en">Confidential · for invited recipients only. Scripted prototype; results are unvalidated.</span></footer>
+<footer><span data-l="tr">Davet edilen alıcılar için hazırlanmıştır. Senaryolu prototip; sonuçlar doğrulanmamıştır.</span><span data-l="en">Prepared for invited recipients. Scripted prototype; results are unvalidated.</span></footer>
 <script>
 function setL(l){document.body.className=l;document.documentElement.lang=l;document.getElementById('btr').className=l==='tr'?'on':'';document.getElementById('ben').className=l==='en'?'on':'';if(window.xredraw)xredraw();for(const a of document.querySelectorAll('a[href^="index.html"]'))a.href='index.html?lang='+l}
 </script>
